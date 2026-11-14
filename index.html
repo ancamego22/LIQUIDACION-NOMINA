@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Liquidador de Nómina y Turnos - SURA / Chani</title>
+    <!-- Tailwind CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- html2canvas para exportar imagen -->
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/html2canvas.min.js"></script>
+</head>
+<body class="bg-gray-100 font-sans text-gray-800">
+
+    <!-- Header -->
+    <header class="bg-blue-800 text-white shadow-md py-4 px-6 mb-6">
+        <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center">
+            <div>
+                <h1 class="text-2xl font-bold flex items-center gap-2"><i class="fa-solid fa-calculator"></i> Liquidador de Nómina & Turnos SURA</h1>
+                <p class="text-blue-200 text-sm">Normativa Colombia 2026 | Recargo Nocturno desde las 7:00 p.m.</p>
+            </div>
+            <div class="mt-2 md:mt-0 bg-blue-700 px-4 py-2 rounded-lg text-sm">
+                <span id="current-date"></span>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 pb-12 grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- Columna Izquierda & Centro: Configuración y Calendario -->
+        <div class="lg:col-span-2 space-y-6">
+
+            <!-- Panel 1: Datos Salariales y Modo de Liquidación -->
+            <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
+                <h2 class="text-lg font-bold text-blue-800 mb-4 flex items-center gap-2"><i class="fa-solid fa-wallet"></i> 1. Datos Base y Modo de Liquidación</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-600 mb-1">Salario Básico Mensual (COP)</label>
+                        <input type="number" id="salarioBasico" value="1750905" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" oninput="calcularNomina()">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-600 mb-1">Forma de Liquidación</label>
+                        <select id="modoLiquidacion" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none font-semibold text-blue-900 bg-blue-50" onchange="cambiarModo()">
+                            <option value="ciclo">Por Ciclo SURA (Catorcenal)</option>
+                            <option value="calendario">Por Calendario de Mes</option>
+                        </select>
+                    </div>
+                    <div id="selectorContainer">
+                        <label id="lblSelectorLabel" class="block text-sm font-semibold text-gray-600 mb-1">Seleccionar Ciclo</label>
+                        <select id="selectorPrincipal" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none font-semibold text-blue-900" onchange="actualizarFechas()">
+                            <!-- Generado por JS -->
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Tarjetas de Costo por Hora y Turno Base -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
+                    <div class="bg-blue-50 p-3 rounded-lg border border-blue-100 text-center">
+                        <span class="block text-xs text-blue-600 font-bold">VALOR HORA ORD.</span>
+                        <span id="lblValorHora" class="text-md font-extrabold text-blue-900">$0</span>
+                    </div>
+                    <div class="bg-blue-50 p-3 rounded-lg border border-blue-100 text-center">
+                        <span class="block text-xs text-blue-600 font-bold">VALOR HORA NOC. (35%)</span>
+                        <span id="lblValorHoraNoc" class="text-md font-extrabold text-blue-900">$0</span>
+                    </div>
+                    <div class="bg-blue-50 p-3 rounded-lg border border-blue-100 text-center">
+                        <span class="block text-xs text-blue-600 font-bold">VALOR HORA FEST.</span>
+                        <span id="lblValorHoraFest" class="text-md font-extrabold text-blue-900">$0</span>
+                    </div>
+                    <div class="bg-blue-50 p-3 rounded-lg border border-blue-100 text-center">
+                        <span class="block text-xs text-blue-600 font-bold">VALOR HORA FEST. NOC.</span>
+                        <span id="lblValorHoraFestNoc" class="text-md font-extrabold text-blue-900">$0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel 2: Calendario / Turnos Interactivo -->
+            <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
+                <div class="flex justify-between items-center mb-2">
+                    <h2 class="text-lg font-bold text-blue-800 flex items-center gap-2"><i class="fa-solid fa-calendar-days"></i> 2. Registro de Turnos</h2>
+                    <span id="lblRangoFechas" class="text-xs bg-blue-100 text-blue-800 px-3 py-1 rounded-full font-bold"></span>
+                </div>
+                <p class="text-xs text-gray-500 mb-4">Selecciona el turno oficial SURA para cada día. El sistema calcula automáticamente los recargos nocturnos (desde las 7:00 p.m.) y dominicales.</p>
+                
+                <div id="calendarioGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-7 gap-3">
+                    <!-- Generado por JavaScript -->
+                </div>
+            </div>
+
+            <!-- Panel 3: Deducciones Adicionales -->
+            <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
+                <h2 class="text-lg font-bold text-blue-800 mb-4 flex items-center gap-2"><i class="fa-solid fa-file-invoice-dollar"></i> 3. Descuentos y Novedades del Empleado</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-600 mb-1">Préstamos / Libranza (COP)</label>
+                        <input type="number" id="prestamos" value="0" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" oninput="calcularNomina()">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-600 mb-1">Fondo de Empleados / Sindicato</label>
+                        <input type="number" id="fondoEmpleados" value="0" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" oninput="calcularNomina()">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-600 mb-1">Otros Descuentos</label>
+                        <input type="number" id="otrosDescuentos" value="0" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" oninput="calcularNomina()">
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Columna Derecha: Resumen de Liquidación tipo Desprendible -->
+        <div class="space-y-6">
+            <div id="desprendiblePago" class="bg-white p-6 rounded-xl shadow-lg border border-blue-200 sticky top-6">
+                <div class="flex justify-between items-center border-b pb-3 mb-4">
+                    <div>
+                        <h2 class="text-lg font-bold text-blue-900">Desprendible de Pago</h2>
+                        <p id="lblCicloDesprendible" class="text-xs text-gray-500 font-semibold">Periodo: Ciclo 22</p>
+                    </div>
+                    <i class="fa-solid fa-receipt text-2xl text-blue-600"></i>
+                </div>
+
+                <!-- DEVENGADOS -->
+                <div class="mb-4">
+                    <h3 class="text-xs font-extrabold text-green-700 uppercase mb-2 flex justify-between bg-green-50 p-1.5 rounded">
+                        <span>Devengados</span>
+                        <span id="totalDevengados">$0</span>
+                    </h3>
+                    <ul class="text-xs space-y-1.5 text-gray-600 px-2">
+                        <li class="flex justify-between"><span>Básico Periodo:</span> <span id="resBasico" class="font-semibold">$0</span></li>
+                        <li class="flex justify-between"><span>Aux. Transporte Ley:</span> <span id="resAuxTrans" class="font-semibold">$0</span></li>
+                        <li class="flex justify-between"><span>Recargos y Extras:</span> <span id="resRecargos" class="font-semibold">$0</span></li>
+                    </ul>
+                </div>
+
+                <!-- DEDUCCIONES -->
+                <div class="mb-4">
+                    <h3 class="text-xs font-extrabold text-red-700 uppercase mb-2 flex justify-between bg-red-50 p-1.5 rounded">
+                        <span>Deducciones</span>
+                        <span id="totalDeducciones">$0</span>
+                    </h3>
+                    <ul class="text-xs space-y-1.5 text-gray-600 px-2">
+                        <li class="flex justify-between"><span>Salud (4%):</span> <span id="resSalud" class="font-semibold">$0</span></li>
+                        <li class="flex justify-between"><span>Pensión (4%):</span> <span id="resPension" class="font-semibold">$0</span></li>
+                        <li class="flex justify-between"><span>Préstamos / Otros:</span> <span id="resOtrosDesc" class="font-semibold">$0</span></li>
+                    </ul>
+                </div>
+
+                <!-- PAGO FINAL NETO -->
+                <div class="bg-blue-900 text-white p-4 rounded-xl text-center shadow-inner mt-6">
+                    <span class="block text-xs uppercase tracking-wider text-blue-200 font-semibold">Neto a Pagar en el Periodo</span>
+                    <span id="netoAPagar" class="text-2xl font-black text-yellow-300">$0</span>
+                </div>
+            </div>
+
+            <!-- Botones de Acción -->
+            <div class="flex flex-col gap-2">
+                <button onclick="descargarImagen()" class="w-full bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-lg text-sm font-semibold transition flex items-center justify-center gap-2 shadow-md">
+                    <i class="fa-solid fa-file-image"></i> Descargar como Imagen (PNG)
+                </button>
+                <button onclick="window.print()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg text-sm font-semibold transition flex items-center justify-center gap-2 shadow-md">
+                    <i class="fa-solid fa-print"></i> Imprimir / Guardar PDF
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        // Tabla oficial de turnos SURA
+        const turnosBase = {
+            "D": { desc: "Descanso", inicio: null, fin: null, horas: 0 },
+            "DF": { desc: "Día de la familia", inicio: null, fin: null, horas: 8 },
+            "T1 A": { desc: "Administrativo (Almuerzo no computable)", inicio: "07:00", fin: "16:30", horas: 8.5 },
+            "T1": { desc: "Turno Mañana (8h)", inicio: "06:00", fin: "14:00", horas: 8 },
+            "T1 E": { desc: "Turno Mañana (9h)", inicio: "06:00", fin: "15:00", horas: 9 },
+            "T1 H": { desc: "Turno Mañana (7h)", inicio: "07:00", fin: "14:00", horas: 7 },
+            "T2": { desc: "Turno Tarde (8h)", inicio: "14:00", fin: "22:00", horas: 8 },
+            "T2 E": { desc: "Turno Tarde (9h)", inicio: "13:00", fin: "22:00", horas: 9 },
+            "T2 H": { desc: "Turno Tarde (7h)", inicio: "14:00", fin: "21:00", horas: 7 },
+            "T3": { desc: "Turno Noche (8h)", inicio: "22:00", fin: "06:00", horas: 8 },
+            "T1 P": { desc: "Planificador Mañana (8h)", inicio: "06:00", fin: "14:00", horas: 8 },
+            "T2 P": { desc: "Planificador Tarde (8h)", inicio: "14:00", fin: "22:00", horas: 8 },
+            "T1 PH": { desc: "Planificador Mañana (7h)", inicio: "07:00", fin: "14:00", horas: 7 },
+            "T2 PH": { desc: "Planificador Tarde (7h)", inicio: "14:00", fin: "21:00", horas: 7 },
+            "T3 P": { desc: "Planificador Noche (8h)", inicio: "22:00", fin: "06:00", horas: 8 },
+            "T4": { desc: "Apoyo Póliza (8h)", inicio: "08:00", fin: "16:00", horas: 8 },
+            "T5": { desc: "Administrativo (8h)", inicio: "07:00", fin: "15:00", horas: 8 },
+            "T4 H": { desc: "Apoyo Póliza (7h)", inicio: "08:00", fin: "15:00", horas: 7 },
+            "T1 R": { desc: "Ruta (Mañana)", inicio: "05:45", fin: "13:45", horas: 8 },
+            "T2 R": { desc: "Ruta (Tarde)", inicio: "13:45", fin: "21:45", horas: 8 },
+            "T3 R": { desc: "Ruta (Noche)", inicio: "21:45", fin: "05:45", horas: 8 },
+            "T1 IND": { desc: "Inducción Mañana (8h)", inicio: "06:00", fin: "14:00", horas: 8 },
+            "T2 IND": { desc: "Inducción Tarde (8h)", inicio: "14:00", fin: "22:00", horas: 8 },
+            "T2 IND CAP": { desc: "Inducción y Capacitación (10h)", inicio: "12:00", fin: "22:00", horas: 10 },
+            "T3 IND": { desc: "Inducción Noche (8h)", inicio: "22:00", fin: "06:00", horas: 8 },
+            "T1 GP": { desc: "Grupo Primario Mañana", inicio: "06:00", fin: "15:00", horas: 9 },
+            "T2 GP": { desc: "Grupo Primario Tarde", inicio: "13:00", fin: "22:00", horas: 9 },
+            "T1 CUM": { desc: "Media jornada cumpleaños", inicio: "06:00", fin: "14:00", horas: 4 },
+            "T2 CUM": { desc: "Media jornada cumpleaños", inicio: "14:00", fin: "22:00", horas: 4 },
+            "T1 VOT": { desc: "Permiso Votaciones (4h)", inicio: "06:00", fin: "14:00", horas: 4 },
+            "T2 VOT": { desc: "Permiso Votaciones (4h)", inicio: "14:00", fin: "22:00", horas: 4 },
+            "T1 CAP": { desc: "Mañana con Capacitación (9h)", inicio: "06:00", fin: "15:00", horas: 9 },
+            "T2 CAP": { desc: "Tarde con Capacitación (9h)", inicio: "12:30", fin: "22:00", horas: 9 },
+            "T1 R CAP": { desc: "Ruta con Capacitación (10h)", inicio: "05:45", fin: "13:45", horas: 8 },
+            "T2 R CAP": { desc: "Ruta con Capacitación (10h)", inicio: "11:45", fin: "21:45", horas: 10 },
+            "INC": { desc: "Incapacidad", inicio: null, fin: null, horas: 8 },
+            "V": { desc: "Vacaciones", inicio: null, fin: null, horas: 8 },
+            "T IND": { desc: "Capacitación / Actividad", inicio: "08:00", fin: "16:00", horas: 8 }
+        };
+
+        // Ciclos de pagos 2026 SURA oficiales exactos
+        const ciclosSura = [
+            { id: "01", inicio: "2026-01-01", fin: "2026-01-14", pago: "2026-01-15" },
+            { id: "02", inicio: "2026-01-15", fin: "2026-01-28", pago: "2026-01-30" },
+            { id: "03", inicio: "2026-01-29", fin: "2026-02-11", pago: "2026-02-13" },
+            { id: "04", inicio: "2026-02-12", fin: "2026-02-25", pago: "2026-02-27" },
+            { id: "05", inicio: "2026-02-26", fin: "2026-03-11", pago: "2026-03-13" },
+            { id: "06", inicio: "2026-03-12", fin: "2026-03-25", pago: "2026-03-30" },
+            { id: "07", inicio: "2026-03-26", fin: "2026-04-08", pago: "2026-04-15" },
+            { id: "08", inicio: "2026-04-09", fin: "2026-04-22", pago: "2026-04-30" },
+            { id: "09", inicio: "2026-04-23", fin: "2026-05-06", pago: "2026-05-15" },
+            { id: "10", inicio: "2026-05-07", fin: "2026-05-20", pago: "2026-05-29" },
+            { id: "11", inicio: "2026-05-21", fin: "2026-06-03", pago: "2026-06-12" },
+            { id: "12", inicio: "2026-06-04", fin: "2026-06-17", pago: "2026-06-30" },
+            { id: "13", inicio: "2026-06-18", fin: "2026-07-01", pago: "2026-07-15" },
+            { id: "14", inicio: "2026-07-02", fin: "2026-07-15", pago: "2026-07-30" },
+            { id: "15", inicio: "2026-07-16", fin: "2026-07-29", pago: "2026-08-14" },
+            { id: "16", inicio: "2026-07-30", fin: "2026-08-12", pago: "2026-08-28" },
+            { id: "17", inicio: "2026-08-13", fin: "2026-08-26", pago: "2026-09-15" },
+            { id: "18", inicio: "2026-08-27", fin: "2026-09-09", pago: "2026-09-30" },
+            { id: "19", inicio: "2026-09-10", fin: "2026-09-23", pago: "2026-10-15" },
+            { id: "20", inicio: "2026-09-24", fin: "2026-10-18", pago: "2026-10-30" },
+            { id: "21", inicio: "2026-10-19", fin: "2026-11-01", pago: "2026-11-13" },
+            { id: "22", inicio: "2026-11-02", fin: "2026-11-15", pago: "2026-11-30" },
+            { id: "23", inicio: "2026-11-16", fin: "2026-11-29", pago: "2026-12-15" },
+            { id: "24", inicio: "2026-11-30", fin: "2026-12-13", pago: "2026-12-28" },
+            { id: "25", inicio: "2026-12-14", fin: "2026-12-27", pago: "2027-01-15" },
+            { id: "26", inicio: "2026-12-28", fin: "2027-01-10", pago: "2027-01-29" },
+            { id: "27", inicio: "2027-01-11", fin: "2027-01-24", pago: "2027-02-15" }
+        ];
+
+        // Meses para opción de calendario libre
+        const meses2026 = [
+            { nombre: "Enero 2026", inicio: "2026-01-01", dias: 31 },
+            { nombre: "Febrero 2026", inicio: "2026-02-01", dias: 28 },
+            { nombre: "Marzo 2026", inicio: "2026-03-01", dias: 31 },
+            { nombre: "Abril 2026", inicio: "2026-04-01", dias: 30 },
+            { nombre: "Mayo 2026", inicio: "2026-05-01", dias: 31 },
+            { nombre: "Junio 2026", inicio: "2026-06-01", dias: 30 },
+            { nombre: "Julio 2026", inicio: "2026-07-01", dias: 31 },
+            { nombre: "Agosto 2026", inicio: "2026-08-01", dias: 31 },
+            { nombre: "Septiembre 2026", inicio: "2026-09-01", dias: 30 },
+            { nombre: "Octubre 2026", inicio: "2026-10-01", dias: 31 },
+            { nombre: "Noviembre 2026", inicio: "2026-11-01", dias: 30 },
+            { nombre: "Diciembre 2026", inicio: "2026-12-01", dias: 31 }
+        ];
+
+        function initApp() {
+            cambiarModo();
+            document.getElementById('current-date').innerText = new Date().toLocaleDateString('es-CO', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        }
+
+        function cambiarModo() {
+            let modo = document.getElementById('modoLiquidacion').value;
+            let select = document.getElementById('selectorPrincipal');
+            let lbl = document.getElementById('lblSelectorLabel');
+            select.innerHTML = '';
+
+            if (modo === 'ciclo') {
+                lbl.innerText = "Seleccionar Ciclo SURA";
+                ciclosSura.forEach((c, idx) => {
+                    let opt = document.createElement('option');
+                    opt.value = idx;
+                    opt.innerText = `Ciclo ${c.id} (${c.inicio} al ${c.fin})`;
+                    select.appendChild(opt);
+                });
+                select.value = 21; // Por defecto Ciclo 22
+            } else {
+                lbl.innerText = "Seleccionar Mes de Calendario";
+                meses2026.forEach((m, idx) => {
+                    let opt = document.createElement('option');
+                    opt.value = idx;
+                    opt.innerText = m.nombre;
+                    select.appendChild(opt);
+                });
+                select.value = 10; // Por defecto Noviembre 2026
+            }
+            actualizarFechas();
+        }
+
+        function actualizarFechas() {
+            let modo = document.getElementById('modoLiquidacion').value;
+            let idx = document.getElementById('selectorPrincipal').value;
+            const container = document.getElementById('calendarioGrid');
+            container.innerHTML = '';
+
+            let optionsHTML = '';
+            for (let codigo in turnosBase) {
+                let t = turnosBase[codigo];
+                let horarioTxt = t.inicio && t.fin ? ` (${t.inicio} - ${t.fin})` : '';
+                optionsHTML += `<option value="${codigo}">${codigo} - ${t.desc}${horarioTxt}</option>`;
+            }
+
+            let fechaInicio, diasTotal, descripcionPeriodo;
+
+            if (modo === 'ciclo') {
+                let cicloObj = ciclosSura[idx];
+                document.getElementById('lblCicloDesprendible').innerText = `Ciclo ${cicloObj.id} (Pago: ${cicloObj.pago})`;
+                fechaInicio = new Date(cicloObj.inicio + 'T00:00:00');
+                let fechaFinReal = new Date(cicloObj.fin + 'T00:00:00');
+                let diffTime = Math.abs(fechaFinReal - fechaInicio);
+                diasTotal = Math.round(diffTime / (1000 * 60 * 60 * 24)) + 1;
+                descripcionPeriodo = `Ciclo ${cicloObj.id} (${cicloObj.inicio} al ${cicloObj.fin})`;
+            } else {
+                let mesObj = meses2026[idx];
+                document.getElementById('lblCicloDesprendible').innerText = `Mes de ${mesObj.nombre}`;
+                fechaInicio = new Date(mesObj.inicio + 'T00:00:00');
+                diasTotal = mesObj.dias;
+                descripcionPeriodo = mesObj.nombre;
+            }
+
+            for (let i = 0; i < diasTotal; i++) {
+                let d = new Date(fechaInicio);
+                d.setDate(fechaInicio.getDate() + i);
+                let fechaFormateada = d.toLocaleDateString('es-CO', { weekday: 'short', day: 'numeric', month: 'short' });
+                let esDomingo = (d.getDay() === 0);
+
+                let card = document.createElement('div');
+                card.className = `border p-2.5 rounded-lg flex flex-col justify-between ${esDomingo ? 'bg-yellow-50 border-yellow-200' : 'bg-gray-50 border-gray-200'}`;
+                card.innerHTML = `
+                    <div class="mb-1">
+                        <span class="text-xs font-bold ${esDomingo ? 'text-yellow-600' : 'text-gray-400'} block">Día ${i + 1} ${esDomingo ? '(DOM)' : ''}</span>
+                        <span class="text-xs font-extrabold text-blue-900 capitalize">${fechaFormateada}</span>
+                    </div>
+                    <select id="turno_${i}" data-is-domingo="${esDomingo ? '1' : '0'}" class="w-full text-xs p-1.5 border rounded bg-white font-semibold text-blue-800 focus:ring-1 focus:ring-blue-500 outline-none" onchange="calcularNomina(${diasTotal})">
+                        ${optionsHTML}
+                    </select>
+                `;
+                container.appendChild(card);
+            }
+
+            document.getElementById('lblRangoFechas').innerText = `${descripcionPeriodo} (${diasTotal} días)`;
+            calcularNomina(diasTotal);
+        }
+
+        function formatCOP(valor) {
+            return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(valor);
+        }
+
+        function calcularHorasNocturnas(inicioStr, finStr) {
+            if (!inicioStr || !finStr) return 0;
+            let [hIn, mIn] = inicioStr.split(':').map(Number);
+            let [hFin, mFin] = finStr.split(':').map(Number);
+            
+            let inicioMinutos = hIn * 60 + mIn;
+            let finMinutos = hFin * 60 + mFin;
+            if (finMinutos <= inicioMinutos) finMinutos += 24 * 60; 
+
+            let nocturnasMinutos = 0;
+            for (let m = inicioMinutos; m < finMinutos; m++) {
+                let horaDia = (Math.floor(m / 60)) % 24;
+                if (horaDia >= 19 || horaDia < 6) {
+                    nocturnasMinutos++;
+                }
+            }
+            return nocturnasMinutos / 60;
+        }
+
+        function calcularNomina(diasTotal = 14) {
+            let salarioBasico = parseFloat(document.getElementById('salarioBasico').value) || 0;
+
+            let valorDia = salarioBasico / 30;
+            let valorHora = valorDia / 8;
+            let valorHoraNoc = valorHora * 1.35; 
+            let valorHoraFest = valorHora * 1.90; 
+            let valorHoraFestNoc = valorHora * 2.25; 
+
+            document.getElementById('lblValorHora').innerText = formatCOP(valorHora);
+            document.getElementById('lblValorHoraNoc').innerText = formatCOP(valorHoraNoc);
+            document.getElementById('lblValorHoraFest').innerText = formatCOP(valorHoraFest);
+            document.getElementById('lblValorHoraFestNoc').innerText = formatCOP(valorHoraFestNoc);
+
+            let basicoPeriodo = (salarioBasico / 30) * diasTotal;
+            
+            let auxTransM = 249095;
+            let auxTransPeriodo = (auxTransM / 30) * diasTotal;
+            let topeSMLMV = 1750905 * 2;
+            if (salarioBasico > topeSMLMV) {
+                auxTransPeriodo = 0; 
+            }
+
+            let totalRecargos = 0;
+            for (let i = 0; i < diasTotal; i++) {
+                let selectElem = document.getElementById(`turno_${i}`);
+                if (selectElem) {
+                    let codigoTurno = selectElem.value;
+                    let esDomingo = selectElem.getAttribute('data-is-domingo') === '1';
+                    let turnoObj = turnosBase[codigoTurno];
+
+                    if (turnoObj && turnoObj.inicio && turnoObj.fin) {
+                        let totalHorasTurno = turnoObj.horas;
+                        let horasNoc = calcularHorasNocturnas(turnoObj.inicio, turnoObj.fin);
+                        let horasDiu = totalHorasTurno - horasNoc;
+
+                        if (esDomingo || codigoTurno.includes('DF')) {
+                            totalRecargos += (horasDiu * (valorHora * 0.90)) + (horasNoc * (valorHora * 1.25));
+                        } else {
+                            totalRecargos += horasNoc * (valorHora * 0.35);
+                        }
+                    }
+                }
+            }
+
+            let totalDevengados = basicoPeriodo + auxTransPeriodo + totalRecargos;
+
+            let ibc = basicoPeriodo + totalRecargos;
+            let salud = ibc * 0.04;
+            let pension = ibc * 0.04;
+
+            let prestamos = parseFloat(document.getElementById('prestamos').value) || 0;
+            let fondoEmpleados = parseFloat(document.getElementById('fondoEmpleados').value) || 0;
+            let otrosDescuentos = parseFloat(document.getElementById('otrosDescuentos').value) || 0;
+
+            let totalDeducciones = salud + pension + prestamos + fondoEmpleados + otrosDescuentos;
+            let netoAPagar = totalDevengados - totalDeducciones;
+
+            document.getElementById('resBasico').innerText = formatCOP(basicoPeriodo);
+            document.getElementById('resAuxTrans').innerText = formatCOP(auxTransPeriodo);
+            document.getElementById('resRecargos').innerText = formatCOP(totalRecargos);
+            document.getElementById('totalDevengados').innerText = formatCOP(totalDevengados);
+
+            document.getElementById('resSalud').innerText = formatCOP(salud);
+            document.getElementById('resPension').innerText = formatCOP(pension);
+            document.getElementById('resOtrosDesc').innerText = formatCOP(prestamos + fondoEmpleados + otrosDescuentos);
+            document.getElementById('totalDeducciones').innerText = formatCOP(totalDeducciones);
+
+            document.getElementById('netoAPagar').innerText = formatCOP(netoAPagar);
+        }
+
+        function descargarImagen() {
+            const elemento = document.getElementById('desprendiblePago');
+            html2canvas(elemento, { scale: 2 }).then(canvas => {
+                let enlace = document.createElement('a');
+                enlace.download = 'desprendible-nomina.png';
+                enlace.href = canvas.toDataURL('image/png');
+                enlace.click();
+            });
+        }
+
+        window.onload = initApp;
+    </script>
+</body>
+</html>
